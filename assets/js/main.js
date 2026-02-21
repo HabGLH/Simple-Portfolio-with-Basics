@@ -45,7 +45,10 @@ function initMobileMenu() {
   menuToggle.addEventListener("click", () => {
     const expanded = menuToggle.getAttribute("aria-expanded") === "true";
     menuToggle.setAttribute("aria-expanded", String(!expanded));
-    menuToggle.setAttribute("aria-label", expanded ? "Open menu" : "Close menu");
+    menuToggle.setAttribute(
+      "aria-label",
+      expanded ? "Open menu" : "Close menu",
+    );
     navList.classList.toggle("active");
   });
 
@@ -79,7 +82,7 @@ function initSectionRevealAndActiveNav() {
         if (entry.isIntersecting) entry.target.classList.add("visible");
       });
     },
-    { threshold: 0.2 }
+    { threshold: 0.2 },
   );
 
   const navObserver = new IntersectionObserver(
@@ -99,7 +102,7 @@ function initSectionRevealAndActiveNav() {
     {
       threshold: 0.55,
       rootMargin: "-20% 0px -30% 0px",
-    }
+    },
   );
 
   sections.forEach((section) => {
@@ -123,7 +126,7 @@ function initThemeToggle() {
 
     themeToggle.setAttribute(
       "aria-label",
-      isDark ? "Switch to light theme" : "Switch to dark theme"
+      isDark ? "Switch to light theme" : "Switch to dark theme",
     );
   };
 
@@ -190,7 +193,7 @@ async function submitToEndpoint(endpoint, payload) {
 function openMailClient(contactEmail, { name, email, message }) {
   const subject = encodeURIComponent(`Portfolio Contact from ${name}`);
   const body = encodeURIComponent(
-    `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`
+    `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
   );
 
   window.location.href = `mailto:${contactEmail}?subject=${subject}&body=${body}`;
@@ -225,7 +228,7 @@ function initContactForm() {
       } else {
         openMailClient(contactEmail, payload);
         setFormStatus(
-          "Your email app has been opened. Send the drafted message there."
+          "Your email app has been opened. Send the drafted message there.",
         );
       }
 
@@ -242,13 +245,12 @@ function initFooterYear() {
   if (ui.year) ui.year.textContent = String(new Date().getFullYear());
 }
 
-function init() {
+//main entery for to the code
+(() => {
   initMobileMenu();
   initHeaderShadowOnScroll();
   initSectionRevealAndActiveNav();
   initThemeToggle();
   initContactForm();
   initFooterYear();
-}
-
-init();
+})();
