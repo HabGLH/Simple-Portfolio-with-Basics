@@ -3,17 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hab@GLH</title>
+    <meta
+      name="description"
+      content="Portfolio of Habtamu Genet, an aspiring web developer building clean and responsive web experiences."
+    />
+    <title>Habtamu Genet | Portfolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="assets/css/styles.css" />
   </head>
   <body>
-    <!-- Header -->
-    <header class="header">
-      <div class="logo">
-        <h1><a href="#Home">Hab@GLH</a></h1>
-      </div>
-
-      <nav class="navbar">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <header class="header" id="site-header">
+      <a class="logo" href="#Home">Habtamu Genet</a>
+      <nav class="navbar" aria-label="Primary navigation">
         <ul>
           <li><a href="#Home">Home</a></li>
           <li><a href="#About">About</a></li>
@@ -22,21 +29,32 @@
           <li><a href="#Contact">Contact</a></li>
         </ul>
       </nav>
-
-      <button class="menu-toggle">☰</button>
+      <div class="header-actions">
+        <button class="theme-toggle" type="button" aria-label="Toggle theme">
+          Theme
+        </button>
+        <button
+          class="menu-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="main-menu"
+          aria-label="Open menu"
+        >
+          ☰
+        </button>
+      </div>
     </header>
 
-    <!-- Main Sections -->
-    <main>
-      <!-- Home Section -->
+    <main id="main-content">
       <section id="Home" class="hero">
         <div class="hero-container">
           <div class="hero-text">
-            <h1>Hi, I'm Habtamu Genet</h1>
-            <h2>Aspiring Web Developer</h2>
+            <p class="eyebrow">Junior Frontend Developer</p>
+            <h1>Hi, I am Habtamu Genet</h1>
+            <h2>I build clean and responsive web interfaces.</h2>
             <p>
-              I’m learning web development and building clean, responsive
-              websites using HTML, CSS, and JS.
+              I focus on accessible, fast, and user-friendly websites using
+              HTML, CSS, and JavaScript.
             </p>
             <div class="hero-buttons">
               <a href="#Works" class="btn">View Projects</a>
@@ -49,7 +67,6 @@
         </div>
       </section>
 
-      <!-- About Section -->
       <section id="About" class="about">
         <div class="about-container">
           <div class="about-image">
@@ -57,7 +74,11 @@
           </div>
           <div class="about-text">
             <h2>About Me</h2>
-            <p>I am Habtamu Genet, an aspiring web developer...</p>
+            <p>
+              I am a self-driven developer who enjoys turning ideas into
+              practical digital experiences. I value maintainable code,
+              thoughtful design, and continuous learning.
+            </p>
             <h3>Skills</h3>
             <ul class="skills">
               <li>HTML</li>
@@ -71,36 +92,38 @@
         </div>
       </section>
 
-      <!-- Services Section -->
       <section id="Services" class="services">
-        <h2 class="section-title">My Services</h2>
+        <h2 class="section-title">Services</h2>
         <div class="services-container">
           <div class="service-box">
-            <div class="service-icon">🌐</div>
+            <div class="service-icon" aria-hidden="true">01</div>
             <h3>Web Design</h3>
-            <p>Create modern and responsive designs.</p>
+            <p>
+              Modern page layouts, strong visual hierarchy, and responsive
+              interfaces.
+            </p>
           </div>
           <div class="service-box">
-            <div class="service-icon">💻</div>
+            <div class="service-icon" aria-hidden="true">02</div>
             <h3>Web Development</h3>
-            <p>Build functional websites with clean code.</p>
+            <p>Clean, semantic, and scalable code for reliable web pages.</p>
           </div>
           <div class="service-box">
-            <div class="service-icon">🎨</div>
+            <div class="service-icon" aria-hidden="true">03</div>
             <h3>UI/UX</h3>
-            <p>Design simple and intuitive interfaces.</p>
+            <p>Simple and intuitive interactions focused on user outcomes.</p>
           </div>
         </div>
       </section>
 
-      <!-- Works Section -->
       <section id="Works" class="works">
-        <h2 class="section-title">My Works</h2>
+        <h2 class="section-title">Featured Projects</h2>
         <div class="works-container">
           <div class="work-box">
             <img src="assets/images/project2.png" alt="Project 1" />
             <div class="work-content">
               <h3>Portfolio Website</h3>
+              <p>Responsive personal website with clean sections and CSS.</p>
               <a href="#" class="btn-small">View Project</a>
             </div>
           </div>
@@ -108,6 +131,7 @@
             <img src="assets/images/project2.png" alt="Project 2" />
             <div class="work-content">
               <h3>To-Do List App</h3>
+              <p>Task planner with local state management and filtering.</p>
               <a href="#" class="btn-small">View Project</a>
             </div>
           </div>
@@ -115,15 +139,15 @@
             <img src="assets/images/project2.png" alt="Project 3" />
             <div class="work-content">
               <h3>Landing Page</h3>
+              <p>Marketing page design with clear CTA and mobile-first flow.</p>
               <a href="#" class="btn-small">View Project</a>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Contact Section -->
       <section id="Contact" class="contact">
-        <h2 class="section-title">Contact Me</h2>
+        <h2 class="section-title">Contact</h2>
         <div class="contact-container">
           <div class="contact-info">
             <h3>Get In Touch</h3>
@@ -133,27 +157,46 @@
               <li><strong>Location:</strong> Ethiopia</li>
             </ul>
             <div class="social-links">
-              <a href="#"><img src="assets/icon/github.svg" alt="GitHub" /></a
-              ><a href="#"
-                ><img src="assets/icon/linkedin.svg" alt="LinkedIn" /></a
-              ><a href="#"
-                ><img src="assets/icon/telegram.svg" alt="Telegram"
+              <a href="#" aria-label="GitHub"
+                ><img src="assets/icon/github.svg" alt=""
+              /></a>
+              <a href="#" aria-label="LinkedIn"
+                ><img src="assets/icon/linkedin.svg" alt=""
+              /></a>
+              <a href="#" aria-label="Telegram"
+                ><img src="assets/icon/telegram.svg" alt=""
               /></a>
             </div>
           </div>
-          <form class="contact-form">
-            <input type="text" placeholder="Your Name" required />
-            <input type="email" placeholder="Your Email" required />
-            <textarea placeholder="Your Message" required></textarea>
+          <form class="contact-form" novalidate>
+            <input
+              type="text"
+              name="name"
+              placeholder="Your Name"
+              autocomplete="name"
+              required
+            />
+            <input
+              type="email"
+              name="email"
+              placeholder="Your Email"
+              autocomplete="email"
+              required
+            />
+            <textarea
+              name="message"
+              placeholder="Your Message"
+              required
+            ></textarea>
             <button type="submit" class="btn">Send Message</button>
+            <p class="form-status" role="status" aria-live="polite"></p>
           </form>
         </div>
       </section>
     </main>
 
-    <!-- Footer -->
     <footer class="footer">
-      <p>&copy; 2025 Hab@GLH. All Rights Reserved.</p>
+      <p>&copy; <span id="copyright-year">2026</span> Habtamu Genet</p>
       <div class="footer-social">
         <a href="#">GitHub</a><a href="#">LinkedIn</a><a href="#">Facebook</a>
       </div>

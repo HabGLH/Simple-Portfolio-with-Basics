@@ -1,21 +1,43 @@
-// ===== Hamburger Menu Toggle (defensive) =====
 const menuToggle = document.querySelector(".menu-toggle");
 const navList = document.querySelector(".navbar ul");
+const navLinks = document.querySelectorAll(".navbar a");
+const siteHeader = document.getElementById("site-header");
+const themeToggle = document.querySelector(".theme-toggle");
+const form = document.querySelector(".contact-form");
+const formStatus = document.querySelector(".form-status");
+const sections = document.querySelectorAll("main section");
 
 if (menuToggle && navList) {
+  menuToggle.setAttribute("aria-controls", "main-menu");
+  navList.id = "main-menu";
+
   menuToggle.addEventListener("click", () => {
+    const expanded = menuToggle.getAttribute("aria-expanded") === "true";
+    menuToggle.setAttribute("aria-expanded", String(!expanded));
+    menuToggle.setAttribute("aria-label", expanded ? "Open menu" : "Close menu");
     navList.classList.toggle("active");
   });
 
-  document.querySelectorAll(".navbar ul li a").forEach((link) => {
-    link.addEventListener("click", () => navList.classList.remove("active"));
+  navLinks.forEach((link) => {
+    link.addEventListener("click", () => {
+      navList.classList.remove("active");
+      menuToggle.setAttribute("aria-expanded", "false");
+      menuToggle.setAttribute("aria-label", "Open menu");
+    });
   });
 }
 
-// ===== Fade-in Sections on Scroll =====
-const sections = document.querySelectorAll("section");
-if (sections.length && "IntersectionObserver" in window) {
-  const observer = new IntersectionObserver(
+const toggleHeaderShadow = () => {
+  if (!siteHeader) return;
+  if (window.scrollY > 10) siteHeader.classList.add("scrolled");
+  else siteHeader.classList.remove("scrolled");
+};
+
+toggleHeaderShadow();
+window.addEventListener("scroll", toggleHeaderShadow, { passive: true });
+
+if ("IntersectionObserver" in window && sections.length) {
+  const revealObserver = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) entry.target.classList.add("visible");
@@ -24,74 +46,75 @@ if (sections.length && "IntersectionObserver" in window) {
     { threshold: 0.2 }
   );
 
-  sections.forEach((section) => observer.observe(section));
+  sections.forEach((section) => revealObserver.observe(section));
+
+  const navObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+
+        const id = entry.target.getAttribute("id");
+        if (!id) return;
+
+        navLinks.forEach((link) => {
+          const isActive = link.getAttribute("href") === `#${id}`;
+          link.classList.toggle("active", isActive);
+        });
+      });
+    },
+    {
+      threshold: 0.55,
+      rootMargin: "-20% 0px -30% 0px",
+    }
+  );
+
+  sections.forEach((section) => navObserver.observe(section));
 } else {
-  // Fallback: make sections visible if IntersectionObserver isn't supported
-  sections.forEach((s) => s.classList.add("visible"));
+  sections.forEach((section) => section.classList.add("visible"));
 }
 
-// ===== Dark Mode Toggle =====
-const darkModeBtn = document.createElement("button");
-darkModeBtn.textContent = "Dark Mode";
-darkModeBtn.classList.add("dark-mode-toggle");
-// Add to header if present, otherwise to body
-const headerEl = document.querySelector(".header");
-if (headerEl) headerEl.appendChild(darkModeBtn);
-else document.body.appendChild(darkModeBtn);
+const storedTheme = localStorage.getItem("portfolio-theme");
+if (storedTheme === "dark") {
+  document.body.classList.add("dark-mode");
+}
 
-darkModeBtn.addEventListener("click", () => {
-  document.body.classList.toggle("dark-mode");
-  darkModeBtn.textContent = document.body.classList.contains("dark-mode")
-    ? "Light Mode"
-    : "Dark Mode";
-});
+if (themeToggle) {
+  themeToggle.textContent = document.body.classList.contains("dark-mode")
+    ? "Light"
+    : "Theme";
 
-// ===== Contact Form Submission (safe) =====
-const contactForm = document.querySelector(".contact-form");
-if (contactForm) {
-  contactForm.addEventListener("submit", (e) => {
-    e.preventDefault(); // prevent default reload
+  themeToggle.addEventListener("click", () => {
+    document.body.classList.toggle("dark-mode");
+    const isDark = document.body.classList.contains("dark-mode");
+    localStorage.setItem("portfolio-theme", isDark ? "dark" : "light");
+    themeToggle.textContent = isDark ? "Light" : "Theme";
+  });
+}
 
-    const nameEl = contactForm.querySelector("input[type='text']");
-    const emailEl = contactForm.querySelector("input[type='email']");
-    const textareaEl = contactForm.querySelector("textarea");
+if (form) {
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
 
-    const name = nameEl ? nameEl.value.trim() : "";
-    const email = emailEl ? emailEl.value.trim() : "";
-    const message = textareaEl ? textareaEl.value.trim() : "";
+    const data = new FormData(form);
+    const name = String(data.get("name") || "").trim();
+    const email = String(data.get("email") || "").trim();
+    const message = String(data.get("message") || "").trim();
 
-    // Simple validation
     if (!name || !email || !message) {
-      alert("Please fill in all fields!");
+      if (formStatus) formStatus.textContent = "Please fill in all fields.";
       return;
     }
 
-    // Optional: Email format validation (allow longer TLDs)
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-    if (!email.match(emailPattern)) {
-      alert("Please enter a valid email!");
+    if (!emailPattern.test(email)) {
+      if (formStatus) formStatus.textContent = "Please enter a valid email.";
       return;
     }
 
-    // Simulate form submission (you can integrate EmailJS or backend later)
-    alert("Message sent successfully!\nThank you, " + name + "!");
-
-    contactForm.reset(); // clear form
+    if (formStatus) formStatus.textContent = `Thanks ${name}, your message is ready to send.`;
+    form.reset();
   });
 }
 
-// ===== Smooth Scroll for Navbar Links =====
-document.querySelectorAll(".navbar ul li a").forEach((link) => {
-  link.addEventListener("click", (e) => {
-    // Let hamburger handler close menu first (if any)
-    const href = link.getAttribute("href");
-    if (!href || !href.startsWith("#")) return; // ignore external links
-
-    e.preventDefault();
-    const targetId = href.slice(1);
-    const targetSection = document.getElementById(targetId);
-    if (targetSection) {
-      targetSection.scrollIntoView({ behavior: "smooth" });
-    }
-  });
-});
+const yearEl = document.getElementById("copyright-year");
+if (yearEl) yearEl.textContent = String(new Date().getFullYear());
