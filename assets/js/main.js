@@ -3,6 +3,8 @@ const navList = document.querySelector(".navbar ul");
 const navLinks = document.querySelectorAll(".navbar a");
 const siteHeader = document.getElementById("site-header");
 const themeToggle = document.querySelector(".theme-toggle");
+const themeIcon = document.querySelector(".theme-icon");
+const themeLabel = document.querySelector(".theme-label");
 const form = document.querySelector(".contact-form");
 const formStatus = document.querySelector(".form-status");
 const sections = document.querySelectorAll("main section");
@@ -79,15 +81,23 @@ if (storedTheme === "dark") {
 }
 
 if (themeToggle) {
-  themeToggle.textContent = document.body.classList.contains("dark-mode")
-    ? "Light"
-    : "Theme";
+  const syncThemeButton = () => {
+    const isDark = document.body.classList.contains("dark-mode");
+    if (themeIcon) themeIcon.textContent = isDark ? "🌙" : "☀";
+    if (themeLabel) themeLabel.textContent = "Theme";
+    themeToggle.setAttribute(
+      "aria-label",
+      isDark ? "Switch to light theme" : "Switch to dark theme"
+    );
+  };
+
+  syncThemeButton();
 
   themeToggle.addEventListener("click", () => {
     document.body.classList.toggle("dark-mode");
     const isDark = document.body.classList.contains("dark-mode");
     localStorage.setItem("portfolio-theme", isDark ? "dark" : "light");
-    themeToggle.textContent = isDark ? "Light" : "Theme";
+    syncThemeButton();
   });
 }
 
