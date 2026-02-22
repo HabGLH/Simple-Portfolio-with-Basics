@@ -68,11 +68,85 @@ function initHeaderShadowOnScroll() {
 }
 
 function initSectionRevealAndActiveNav() {
-  const { sections, navLinks } = ui;
+  const { sections, navLinks, siteHeader } = ui;
   if (!sections.length) return;
 
+  const normalizedSections = Array.from(sections).filter((section) =>
+    section.id?.trim(),
+  );
+  if (!normalizedSections.length) return;
+
+  const sectionIndex = new Map(
+    normalizedSections.map((section) => [section.id.toLowerCase(), section.id]),
+  );
+
+  const setActiveLinkById = (id) => {
+    const normalizedId = String(id || "").replace(/^#/, "").toLowerCase();
+    if (!normalizedId) return;
+
+    navLinks.forEach((link) => {
+      const hrefId = String(link.getAttribute("href") || "")
+        .replace(/^#/, "")
+        .toLowerCase();
+      const isActive = hrefId === normalizedId;
+
+      link.classList.toggle("active", isActive);
+      if (isActive) {
+        link.setAttribute("aria-current", "page");
+      } else {
+        link.removeAttribute("aria-current");
+      }
+    });
+  };
+
+  const setInitialActiveFromHash = () => {
+    const hashId = decodeURIComponent(window.location.hash || "")
+      .replace(/^#/, "")
+      .toLowerCase();
+
+    if (hashId && sectionIndex.has(hashId)) {
+      setActiveLinkById(sectionIndex.get(hashId));
+      return;
+    }
+
+    setActiveLinkById(normalizedSections[0].id);
+  };
+
+  const updateActiveLinkFromScroll = () => {
+    const headerOffset = siteHeader?.offsetHeight || 0;
+    const probe = window.scrollY + headerOffset + 24;
+
+    let activeSectionId = normalizedSections[0].id;
+
+    normalizedSections.forEach((section) => {
+      const top = section.offsetTop;
+      const bottom = top + section.offsetHeight;
+      if (probe >= top && probe < bottom) {
+        activeSectionId = section.id;
+      }
+    });
+
+    setActiveLinkById(activeSectionId);
+  };
+
+  navLinks.forEach((link) => {
+    link.addEventListener("click", () => {
+      const hrefId = link.getAttribute("href");
+      if (hrefId) setActiveLinkById(hrefId);
+    });
+  });
+
+  window.addEventListener("hashchange", setInitialActiveFromHash);
+  window.addEventListener("scroll", updateActiveLinkFromScroll, {
+    passive: true,
+  });
+  window.addEventListener("resize", updateActiveLinkFromScroll);
+
+  setInitialActiveFromHash();
+  updateActiveLinkFromScroll();
+
   if (!("IntersectionObserver" in window)) {
-    sections.forEach((section) => section.classList.add("visible"));
+    normalizedSections.forEach((section) => section.classList.add("visible"));
     return;
   }
 
@@ -85,30 +159,7 @@ function initSectionRevealAndActiveNav() {
     { threshold: 0.2 },
   );
 
-  const navObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-
-        const sectionId = entry.target.getAttribute("id");
-        if (!sectionId) return;
-
-        navLinks.forEach((link) => {
-          const isActive = link.getAttribute("href") === `#${sectionId}`;
-          link.classList.toggle("active", isActive);
-        });
-      });
-    },
-    {
-      threshold: 0.55,
-      rootMargin: "-20% 0px -30% 0px",
-    },
-  );
-
-  sections.forEach((section) => {
-    revealObserver.observe(section);
-    navObserver.observe(section);
-  });
+  normalizedSections.forEach((section) => revealObserver.observe(section));
 }
 
 function initThemeToggle() {
