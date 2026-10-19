@@ -2,7 +2,7 @@
 
 > Modern, accessible, high-performance personal portfolio website engineered with clean semantic HTML5, modern CSS3 (Custom Properties & Glassmorphism), and Vanilla JavaScript.
 
-[![Live Portfolio](https://img.shields.io/badge/Live_Site-Visit-blue?style=for-the-badge&logo=vercel)](https://techbrandecommerce.vercel.app/)
+[![Live Portfolio](https://img.shields.io/badge/Live_Site-Visit-blue?style=for-the-badge&logo=vercel)](https://marketplace-et.vercel.app/)
 [![GitHub](https://img.shields.io/badge/GitHub-HabGLH-181717?style=for-the-badge&logo=github)](https://github.com/HabGLH)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/habtamu-genet-1b6b7138a)
 
@@ -77,7 +77,7 @@ Open your browser and navigate to `http://localhost:8000`.
 ## 👤 Author
 
 **Habtamu Genet**
-- **Education**: 3rd Year B.Sc. in Computer Science — Bahir Dar University
+- **Education**: 4th Year (Final Year) B.Sc. in Computer Science — Bahir Dar University
 - **Email**: [habtamug.tb@gmail.com](mailto:habtamug.tb@gmail.com)
 - **LinkedIn**: [Habtamu Genet](https://www.linkedin.com/in/habtamu-genet-1b6b7138a)
 - **GitHub**: [@HabGLH](https://github.com/HabGLH)
