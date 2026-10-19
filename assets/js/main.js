@@ -1,307 +1,396 @@
-const SELECTORS = {
-  menuToggle: ".menu-toggle",
-  navList: ".navbar ul",
-  navLinks: ".navbar a",
-  siteHeader: "#site-header",
-  themeToggle: ".theme-toggle",
-  themeIcon: ".theme-icon",
-  themeLabel: ".theme-label",
-  contactForm: ".contact-form",
-  formStatus: ".form-status",
-  sections: "main section",
-  year: "#copyright-year",
-};
+/**
+ * Habtamu Genet Portfolio - Main Script
+ * Handles navigation, theme toggling, scroll reveals, active state tracking,
+ * developer terminal copy, back-to-top button, and interactive contact form.
+ */
 
-const THEME_KEY = "portfolio-theme";
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+(function () {
+  "use strict";
 
-const ui = {
-  menuToggle: document.querySelector(SELECTORS.menuToggle),
-  navList: document.querySelector(SELECTORS.navList),
-  navLinks: document.querySelectorAll(SELECTORS.navLinks),
-  siteHeader: document.querySelector(SELECTORS.siteHeader),
-  themeToggle: document.querySelector(SELECTORS.themeToggle),
-  themeIcon: document.querySelector(SELECTORS.themeIcon),
-  themeLabel: document.querySelector(SELECTORS.themeLabel),
-  form: document.querySelector(SELECTORS.contactForm),
-  formStatus: document.querySelector(SELECTORS.formStatus),
-  sections: document.querySelectorAll(SELECTORS.sections),
-  year: document.querySelector(SELECTORS.year),
-};
+  const THEME_STORAGE_KEY = "portfolio-theme";
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-function initMobileMenu() {
-  const { menuToggle, navList, navLinks } = ui;
-  if (!menuToggle || !navList) return;
-
-  navList.id = "main-menu";
-  menuToggle.setAttribute("aria-controls", navList.id);
-
-  const closeMenu = () => {
-    navList.classList.remove("active");
-    menuToggle.setAttribute("aria-expanded", "false");
-    menuToggle.setAttribute("aria-label", "Open menu");
+  const elements = {
+    header: document.getElementById("site-header"),
+    navMenu: document.getElementById("main-menu"),
+    menuToggle: document.getElementById("menu-toggle-btn"),
+    navLinks: document.querySelectorAll(".nav-item"),
+    sections: document.querySelectorAll("main section"),
+    themeToggle: document.getElementById("theme-toggle-btn"),
+    contactForm: document.getElementById("contact-form"),
+    formStatus: document.getElementById("form-status-msg"),
+    submitBtn: document.getElementById("submit-btn"),
+    copySummaryBtn: document.getElementById("copy-summary-btn"),
+    backToTopBtn: document.getElementById("back-to-top-btn"),
+    copyrightYear: document.getElementById("copyright-year"),
   };
 
-  menuToggle.addEventListener("click", () => {
-    const expanded = menuToggle.getAttribute("aria-expanded") === "true";
-    menuToggle.setAttribute("aria-expanded", String(!expanded));
-    menuToggle.setAttribute(
-      "aria-label",
-      expanded ? "Open menu" : "Close menu",
-    );
-    navList.classList.toggle("active");
-  });
+  /**
+   * Theme Switcher (Dark / Light Mode)
+   */
+  function initTheme() {
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const initialTheme = savedTheme ? savedTheme : prefersDark ? "dark" : "dark"; // Defaulting to sleek dark
 
-  navLinks.forEach((link) => link.addEventListener("click", closeMenu));
-}
+    applyTheme(initialTheme);
 
-function initHeaderShadowOnScroll() {
-  const { siteHeader } = ui;
-  if (!siteHeader) return;
-
-  const updateHeaderState = () => {
-    siteHeader.classList.toggle("scrolled", window.scrollY > 10);
-  };
-
-  updateHeaderState();
-  window.addEventListener("scroll", updateHeaderState, { passive: true });
-}
-
-function initSectionRevealAndActiveNav() {
-  const { sections, navLinks, siteHeader } = ui;
-  if (!sections.length) return;
-
-  const normalizedSections = Array.from(sections).filter((section) =>
-    section.id?.trim(),
-  );
-  if (!normalizedSections.length) return;
-
-  const sectionIndex = new Map(
-    normalizedSections.map((section) => [section.id.toLowerCase(), section.id]),
-  );
-
-  const setActiveLinkById = (id) => {
-    const normalizedId = String(id || "").replace(/^#/, "").toLowerCase();
-    if (!normalizedId) return;
-
-    navLinks.forEach((link) => {
-      const hrefId = String(link.getAttribute("href") || "")
-        .replace(/^#/, "")
-        .toLowerCase();
-      const isActive = hrefId === normalizedId;
-
-      link.classList.toggle("active", isActive);
-      if (isActive) {
-        link.setAttribute("aria-current", "page");
-      } else {
-        link.removeAttribute("aria-current");
-      }
-    });
-  };
-
-  const setInitialActiveFromHash = () => {
-    const hashId = decodeURIComponent(window.location.hash || "")
-      .replace(/^#/, "")
-      .toLowerCase();
-
-    if (hashId && sectionIndex.has(hashId)) {
-      setActiveLinkById(sectionIndex.get(hashId));
-      return;
-    }
-
-    setActiveLinkById(normalizedSections[0].id);
-  };
-
-  const updateActiveLinkFromScroll = () => {
-    const headerOffset = siteHeader?.offsetHeight || 0;
-    const probe = window.scrollY + headerOffset + 24;
-
-    let activeSectionId = normalizedSections[0].id;
-
-    normalizedSections.forEach((section) => {
-      const top = section.offsetTop;
-      const bottom = top + section.offsetHeight;
-      if (probe >= top && probe < bottom) {
-        activeSectionId = section.id;
-      }
-    });
-
-    setActiveLinkById(activeSectionId);
-  };
-
-  navLinks.forEach((link) => {
-    link.addEventListener("click", () => {
-      const hrefId = link.getAttribute("href");
-      if (hrefId) setActiveLinkById(hrefId);
-    });
-  });
-
-  window.addEventListener("hashchange", setInitialActiveFromHash);
-  window.addEventListener("scroll", updateActiveLinkFromScroll, {
-    passive: true,
-  });
-  window.addEventListener("resize", updateActiveLinkFromScroll);
-
-  setInitialActiveFromHash();
-  updateActiveLinkFromScroll();
-
-  if (!("IntersectionObserver" in window)) {
-    normalizedSections.forEach((section) => section.classList.add("visible"));
-    return;
-  }
-
-  const revealObserver = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) entry.target.classList.add("visible");
+    if (elements.themeToggle) {
+      elements.themeToggle.addEventListener("click", () => {
+        const isDark = document.body.classList.contains("dark-mode");
+        const nextTheme = isDark ? "light" : "dark";
+        applyTheme(nextTheme);
+        localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
       });
-    },
-    { threshold: 0.2 },
-  );
-
-  normalizedSections.forEach((section) => revealObserver.observe(section));
-}
-
-function initThemeToggle() {
-  const { themeToggle, themeIcon, themeLabel } = ui;
-  if (!themeToggle) return;
-
-  const savedTheme = localStorage.getItem(THEME_KEY);
-  if (savedTheme === "dark") document.body.classList.add("dark-mode");
-
-  const syncThemeUI = () => {
-    const isDark = document.body.classList.contains("dark-mode");
-
-    if (themeIcon) themeIcon.textContent = isDark ? "🌙" : "☀";
-    if (themeLabel) themeLabel.textContent = "Theme";
-
-    themeToggle.setAttribute(
-      "aria-label",
-      isDark ? "Switch to light theme" : "Switch to dark theme",
-    );
-  };
-
-  syncThemeUI();
-
-  themeToggle.addEventListener("click", () => {
-    document.body.classList.toggle("dark-mode");
-    const isDark = document.body.classList.contains("dark-mode");
-    localStorage.setItem(THEME_KEY, isDark ? "dark" : "light");
-    syncThemeUI();
-  });
-}
-
-function setFormStatus(message) {
-  if (ui.formStatus) ui.formStatus.textContent = message;
-}
-
-function readContactFormData(form) {
-  const data = new FormData(form);
-  return {
-    name: String(data.get("name") || "").trim(),
-    email: String(data.get("email") || "").trim(),
-    message: String(data.get("message") || "").trim(),
-  };
-}
-
-function validateContactData({ name, email, message }) {
-  if (!name || !email || !message) {
-    return "Please fill in all fields.";
+    }
   }
 
-  if (!EMAIL_PATTERN.test(email)) {
-    return "Please enter a valid email.";
+  function applyTheme(theme) {
+    if (theme === "dark") {
+      document.body.classList.add("dark-mode");
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.body.classList.remove("dark-mode");
+      document.documentElement.setAttribute("data-theme", "light");
+    }
   }
 
-  return "";
-}
+  /**
+   * Mobile Hamburger Menu
+   */
+  function initMobileMenu() {
+    const { menuToggle, navMenu, navLinks } = elements;
+    if (!menuToggle || !navMenu) return;
 
-async function submitToEndpoint(endpoint, payload) {
-  const isFormspree = endpoint.includes("formspree.io");
-  let response;
+    const navList = navMenu.querySelector(".nav-links");
+    if (!navList) return;
 
-  if (isFormspree) {
-    const body = new URLSearchParams(payload);
-    response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body,
-    });
-  } else {
-    response = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-  }
-
-  if (!response.ok) throw new Error("Request failed");
-}
-
-function openMailClient(contactEmail, { name, email, message }) {
-  const subject = encodeURIComponent(`Portfolio Contact from ${name}`);
-  const body = encodeURIComponent(
-    `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
-  );
-
-  window.location.href = `mailto:${contactEmail}?subject=${subject}&body=${body}`;
-}
-
-function initContactForm() {
-  const { form } = ui;
-  if (!form) return;
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const payload = readContactFormData(form);
-    const submitBtn = form.querySelector("button[type='submit']");
-    const validationMessage = validateContactData(payload);
-
-    if (validationMessage) {
-      setFormStatus(validationMessage);
-      return;
+    function openMenu() {
+      navList.classList.add("active");
+      menuToggle.setAttribute("aria-expanded", "true");
+      menuToggle.setAttribute("aria-label", "Close navigation menu");
     }
 
-    const endpoint = form.dataset.endpoint;
-    const contactEmail = form.dataset.contactEmail || "habtamu@example.com";
+    function closeMenu() {
+      navList.classList.remove("active");
+      menuToggle.setAttribute("aria-expanded", "false");
+      menuToggle.setAttribute("aria-label", "Open navigation menu");
+    }
 
-    if (submitBtn) submitBtn.disabled = true;
-    setFormStatus("Sending your message...");
-
-    try {
-      if (endpoint) {
-        await submitToEndpoint(endpoint, payload);
-        setFormStatus("Message sent successfully.");
+    menuToggle.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const isExpanded = menuToggle.getAttribute("aria-expanded") === "true";
+      if (isExpanded) {
+        closeMenu();
       } else {
-        openMailClient(contactEmail, payload);
-        setFormStatus(
-          "Your email app has been opened. Send the drafted message there.",
-        );
+        openMenu();
+      }
+    });
+
+    // Close when clicking nav items
+    navLinks.forEach((link) => {
+      link.addEventListener("click", () => {
+        closeMenu();
+      });
+    });
+
+    // Close on Escape key
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && navList.classList.contains("active")) {
+        closeMenu();
+      }
+    });
+
+    // Close when clicking outside
+    document.addEventListener("click", (e) => {
+      if (!navMenu.contains(e.target) && !menuToggle.contains(e.target)) {
+        closeMenu();
+      }
+    });
+  }
+
+  /**
+   * Header Scroll Appearance
+   */
+  function initHeaderScroll() {
+    const { header } = elements;
+    if (!header) return;
+
+    function checkScroll() {
+      if (window.scrollY > 20) {
+        header.classList.add("scrolled");
+      } else {
+        header.classList.remove("scrolled");
+      }
+    }
+
+    checkScroll();
+    window.addEventListener("scroll", checkScroll, { passive: true });
+  }
+
+  /**
+   * Scroll Reveal & Active Navigation Spy
+   */
+  function initScrollSpyAndReveal() {
+    const { sections, navLinks, header } = elements;
+    if (!sections.length) return;
+
+    // IntersectionObserver for Section Reveal Animation
+    if ("IntersectionObserver" in window) {
+      const revealObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("visible");
+            }
+          });
+        },
+        { threshold: 0.12 }
+      );
+
+      sections.forEach((section) => revealObserver.observe(section));
+    } else {
+      sections.forEach((section) => section.classList.add("visible"));
+    }
+
+    // ScrollSpy to highlight active link in header
+    function updateActiveNav() {
+      const headerHeight = header ? header.offsetHeight : 76;
+      const scrollPos = window.scrollY + headerHeight + 60;
+
+      let currentId = "";
+
+      sections.forEach((section) => {
+        const top = section.offsetTop;
+        const height = section.offsetHeight;
+        if (scrollPos >= top && scrollPos < top + height) {
+          currentId = section.getAttribute("id");
+        }
+      });
+
+      if (!currentId && sections.length > 0) {
+        currentId = sections[0].getAttribute("id");
       }
 
-      form.reset();
-    } catch {
-      setFormStatus("Could not send right now. Please try again in a moment.");
-    } finally {
-      if (submitBtn) submitBtn.disabled = false;
+      navLinks.forEach((link) => {
+        const targetId = (link.getAttribute("href") || "").replace("#", "");
+        if (targetId.toLowerCase() === (currentId || "").toLowerCase()) {
+          link.classList.add("active");
+          link.setAttribute("aria-current", "page");
+        } else {
+          link.classList.remove("active");
+          link.removeAttribute("aria-current");
+        }
+      });
     }
+
+    window.addEventListener("scroll", updateActiveNav, { passive: true });
+    window.addEventListener("resize", updateActiveNav);
+    updateActiveNav();
+  }
+
+  /**
+   * Developer Terminal Copy Button
+   */
+  function initTerminalCopy() {
+    const { copySummaryBtn } = elements;
+    if (!copySummaryBtn) return;
+
+    const terminalCode = document.querySelector(".terminal-body code");
+    if (!terminalCode) return;
+
+    const copyTextEl = copySummaryBtn.querySelector(".copy-btn-text");
+
+    copySummaryBtn.addEventListener("click", async () => {
+      try {
+        const rawText = terminalCode.textContent || "";
+        await navigator.clipboard.writeText(rawText);
+
+        if (copyTextEl) copyTextEl.textContent = "Copied!";
+        copySummaryBtn.style.borderColor = "var(--emerald)";
+
+        setTimeout(() => {
+          if (copyTextEl) copyTextEl.textContent = "Copy";
+          copySummaryBtn.style.borderColor = "";
+        }, 2200);
+      } catch (err) {
+        if (copyTextEl) copyTextEl.textContent = "Failed";
+        setTimeout(() => {
+          if (copyTextEl) copyTextEl.textContent = "Copy";
+        }, 2000);
+      }
+    });
+  }
+
+  /**
+   * Contact Form Handling & Validation
+   */
+  function initContactForm() {
+    const { contactForm, formStatus, submitBtn } = elements;
+    if (!contactForm) return;
+
+    const nameInput = document.getElementById("contact-name");
+    const emailInput = document.getElementById("contact-email");
+    const messageInput = document.getElementById("contact-message");
+
+    const nameError = document.getElementById("name-error");
+    const emailError = document.getElementById("email-error");
+    const messageError = document.getElementById("message-error");
+
+    function clearErrors() {
+      if (nameError) nameError.textContent = "";
+      if (emailError) emailError.textContent = "";
+      if (messageError) messageError.textContent = "";
+      if (formStatus) {
+        formStatus.textContent = "";
+        formStatus.className = "form-status";
+      }
+    }
+
+    // Clear field-level error on typing
+    [nameInput, emailInput, messageInput].forEach((input) => {
+      if (input) {
+        input.addEventListener("input", () => {
+          clearErrors();
+        });
+      }
+    });
+
+    contactForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      clearErrors();
+
+      const nameVal = (nameInput?.value || "").trim();
+      const emailVal = (emailInput?.value || "").trim();
+      const messageVal = (messageInput?.value || "").trim();
+      const subjectVal = (document.getElementById("contact-subject")?.value || "").trim();
+
+      let hasError = false;
+
+      if (!nameVal) {
+        if (nameError) nameError.textContent = "Please enter your name.";
+        hasError = true;
+      }
+
+      if (!emailVal) {
+        if (emailError) emailError.textContent = "Please enter your email address.";
+        hasError = true;
+      } else if (!EMAIL_REGEX.test(emailVal)) {
+        if (emailError) emailError.textContent = "Please enter a valid email address.";
+        hasError = true;
+      }
+
+      if (!messageVal) {
+        if (messageError) messageError.textContent = "Please write a message.";
+        hasError = true;
+      }
+
+      if (hasError) return;
+
+      const endpoint = contactForm.dataset.endpoint;
+      const fallbackEmail = contactForm.dataset.contactEmail || "habtamug.tb@gmail.com";
+
+      // Enter loading state
+      if (submitBtn) {
+        submitBtn.classList.add("loading");
+        submitBtn.disabled = true;
+      }
+      if (formStatus) {
+        formStatus.textContent = "Sending your message...";
+        formStatus.className = "form-status";
+      }
+
+      try {
+        if (endpoint) {
+          const response = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              name: nameVal,
+              email: emailVal,
+              subject: subjectVal || "Portfolio Contact",
+              message: messageVal,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`Server returned ${response.status}`);
+          }
+
+          if (formStatus) {
+            formStatus.textContent = "✓ Thank you! Your message was sent successfully. I'll get back to you soon.";
+            formStatus.className = "form-status success";
+          }
+          contactForm.reset();
+        } else {
+          // Fallback to mailto
+          openMailClient(fallbackEmail, { name: nameVal, email: emailVal, subject: subjectVal, message: messageVal });
+          if (formStatus) {
+            formStatus.textContent = "Opening your email client to dispatch the message...";
+            formStatus.className = "form-status success";
+          }
+        }
+      } catch (err) {
+        if (formStatus) {
+          formStatus.textContent = "Unable to send right now. Opening your default mail client...";
+          formStatus.className = "form-status error";
+        }
+        // Fallback to mailto if API fails
+        setTimeout(() => {
+          openMailClient(fallbackEmail, { name: nameVal, email: emailVal, subject: subjectVal, message: messageVal });
+        }, 800);
+      } finally {
+        if (submitBtn) {
+          submitBtn.classList.remove("loading");
+          submitBtn.disabled = false;
+        }
+      }
+    });
+  }
+
+  function openMailClient(recipient, { name, email, subject, message }) {
+    const mailSubject = encodeURIComponent(subject || `Portfolio Contact from ${name}`);
+    const mailBody = encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`);
+    window.location.href = `mailto:${recipient}?subject=${mailSubject}&body=${mailBody}`;
+  }
+
+  /**
+   * Back to Top Smooth Scroll
+   */
+  function initBackToTop() {
+    const { backToTopBtn } = elements;
+    if (!backToTopBtn) return;
+
+    backToTopBtn.addEventListener("click", () => {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    });
+  }
+
+  /**
+   * Dynamic Footer Copyright Year
+   */
+  function initCopyrightYear() {
+    const { copyrightYear } = elements;
+    if (copyrightYear) {
+      copyrightYear.textContent = String(new Date().getFullYear());
+    }
+  }
+
+  // Initialize all interactive modules on DOMContentLoaded
+  document.addEventListener("DOMContentLoaded", () => {
+    initTheme();
+    initMobileMenu();
+    initHeaderScroll();
+    initScrollSpyAndReveal();
+    initTerminalCopy();
+    initContactForm();
+    initBackToTop();
+    initCopyrightYear();
   });
-}
-
-function initFooterYear() {
-  if (ui.year) ui.year.textContent = String(new Date().getFullYear());
-}
-
-//main entery for to the code
-(() => {
-  initMobileMenu();
-  initHeaderShadowOnScroll();
-  initSectionRevealAndActiveNav();
-  initThemeToggle();
-  initContactForm();
-  initFooterYear();
 })();
